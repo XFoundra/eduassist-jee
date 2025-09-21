@@ -7,8 +7,8 @@
 <style>
 body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f4f8; }
 header { background:beige; color:darkcyan; padding:15px; text-align:center; }
-nav { display:flex; justify-content:center; background: darkgray; }
-nav button { background:white; color:darkcyan; padding:12px 18px; border:none; cursor:pointer; margin:0 2px; border-radius:4px; }
+nav { display:flex; justify-content:center; background: darkgray; flex-wrap:wrap; }
+nav button { background:white; color:darkcyan; padding:12px 18px; border:none; cursor:pointer; margin:2px; border-radius:4px; }
 nav button:hover { background: bisque; }
 section { display:none; padding:20px; max-width:900px; margin:auto; background:white; margin-top:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 h2 { color:#333; }
@@ -27,38 +27,45 @@ span.wrong { color:red; font-weight:bold; }
 <body>
 
 <header>
-  <h1>EduAssist - JEE Prep</h1>
+  <h1 id="headerTitle">EduAssist - JEE Prep</h1>
 </header>
 
 <nav>
-  <button onclick="showSection('planner')">Planner</button>
-  <button onclick="showSection('notes')">Notes</button>
-  <button onclick="showSection('quizzes')">Quizzes</button>
-  <button onclick="logout()" style="margin-left:20px;background: whitesmoke;">Logout</button>
+  <button onclick="showSection('planner')" id="btnPlanner">Planner</button>
+  <button onclick="showSection('notes')" id="btnNotes">Notes</button>
+  <button onclick="showSection('quizzes')" id="btnQuizzes">Quizzes</button>
+  <button onclick="logout()" style="margin-left:20px;background: whitesmoke;" id="btnLogout">Logout</button>
+  <button onclick="toggleHindi()" style="background: lightgreen;" id="btnHindi">हिंदी में देखें</button>
 </nav>
 
 <!-- Planner Section -->
 <section id="planner">
-  <h2>Study Planner</h2>
-  <label>Subject:</label>
+  <h2 id="plannerTitle">Study Planner</h2>
+  <label id="plannerSubjectLabel">Subject:</label>
   <select id="plannerSubject">
     <option>Physics</option>
     <option>Chemistry</option>
     <option>Math</option>
   </select><br>
-  <label>Topic:</label>
+  <label id="plannerTopicLabel">Topic:</label>
   <input type="text" id="plannerTopic" placeholder="Enter topic">
-  <button onclick="addPlannerTopic()">Add Topic</button>
+  <button onclick="addPlannerTopic()" id="plannerAddBtn">Add Topic</button>
   <table>
-    <thead><tr><th>Subject</th><th>Topic</th><th>Action</th></tr></thead>
+    <thead>
+      <tr>
+        <th id="thSubject">Subject</th>
+        <th id="thTopic">Topic</th>
+        <th id="thAction">Action</th>
+      </tr>
+    </thead>
     <tbody id="plannerTable"></tbody>
   </table>
 </section>
 
 <!-- Notes Section -->
 <section id="notes">
-  <h2>Topic Notes</h2>
-  <label>Subject:</label>
+  <h2 id="notesTitle">Topic Notes</h2>
+  <label id="notesSubjectLabel">Subject:</label>
   <select id="notesSubject" onchange="showNotes()">
     <option>Physics</option>
     <option>Chemistry</option>
@@ -69,8 +76,8 @@ span.wrong { color:red; font-weight:bold; }
 
 <!-- Quizzes Section -->
 <section id="quizzes">
-  <h2>Quizzes</h2>
-  <label>Subject:</label>
+  <h2 id="quizzesTitle">Quizzes</h2>
+  <label id="quizSubjectLabel">Subject:</label>
   <select id="quizSubject" onchange="showQuiz()">
     <option>Physics</option>
     <option>Chemistry</option>
@@ -82,22 +89,54 @@ span.wrong { color:red; font-weight:bold; }
 <!-- Login/Register Modal -->
 <div id="loginModal" class="modal">
   <div class="modal-content">
-    <h3>Login / Register</h3>
+    <h3 id="loginTitle">Login / Register</h3>
     <input type="text" id="username" placeholder="Username"><br>
     <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Register</button>
+    <button onclick="login()" id="loginBtn">Login</button>
+    <button onclick="register()" id="registerBtn">Register</button>
     <p id="loginMessage" style="color:red;"></p>
   </div>
 </div>
 
 <script>
+// ------------------ HINDI TOGGLE ------------------
+let isHindi = false;
+function toggleHindi() {
+  isHindi = !isHindi;
+  document.getElementById('headerTitle').innerText = isHindi ? "एडुअसिस्ट - JEE तैयारी" : "EduAssist - JEE Prep";
+  document.getElementById('btnPlanner').innerText = isHindi ? "प्लानर" : "Planner";
+  document.getElementById('btnNotes').innerText = isHindi ? "नोट्स" : "Notes";
+  document.getElementById('btnQuizzes').innerText = isHindi ? "क्विज़" : "Quizzes";
+  document.getElementById('btnLogout').innerText = isHindi ? "लॉग आउट" : "Logout";
+  document.getElementById('btnHindi').innerText = isHindi ? "View in English" : "हिंदी में देखें";
+
+  document.getElementById('plannerTitle').innerText = isHindi ? "अध्ययन योजना" : "Study Planner";
+  document.getElementById('plannerSubjectLabel').innerText = isHindi ? "विषय:" : "Subject:";
+  document.getElementById('plannerTopicLabel').innerText = isHindi ? "विषय का नाम:" : "Topic:";
+  document.getElementById('plannerAddBtn').innerText = isHindi ? "विषय जोड़ें" : "Add Topic";
+  document.getElementById('thSubject').innerText = isHindi ? "विषय" : "Subject";
+  document.getElementById('thTopic').innerText = isHindi ? "विषय का नाम" : "Topic";
+  document.getElementById('thAction').innerText = isHindi ? "कार्य" : "Action";
+
+  document.getElementById('notesTitle').innerText = isHindi ? "विषय नोट्स" : "Topic Notes";
+  document.getElementById('notesSubjectLabel').innerText = isHindi ? "विषय:" : "Subject:";
+
+  document.getElementById('quizzesTitle').innerText = isHindi ? "क्विज़" : "Quizzes";
+  document.getElementById('quizSubjectLabel').innerText = isHindi ? "विषय:" : "Subject:";
+
+  document.getElementById('loginTitle').innerText = isHindi ? "लॉगिन / रजिस्टर" : "Login / Register";
+  document.getElementById('loginBtn').innerText = isHindi ? "लॉगिन" : "Login";
+  document.getElementById('registerBtn').innerText = isHindi ? "रजिस्टर" : "Register";
+
+  showQuiz(); // Refresh quizzes to show in Hindi/English
+}
+
 // ------------------ LOGIN SYSTEM ------------------
 let currentUser = '';
 function login() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  if(!username || !password) { alert('Enter both fields'); return; }
+  if(!username || !password) { alert(isHindi ? "दोनों फ़ील्ड भरें" : "Enter both fields"); return; }
   const users = JSON.parse(localStorage.getItem('eduassist_users')||'{}');
   if(users[username] && users[username].password===password) {
     currentUser = username;
@@ -106,18 +145,18 @@ function login() {
     loadPlanner();
     showSection('planner');
   } else {
-    document.getElementById('loginMessage').innerText = 'Invalid credentials';
+    document.getElementById('loginMessage').innerText = isHindi ? 'अमान्य विवरण' : 'Invalid credentials';
   }
 }
 function register() {
   const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
-  if(!username || !password) { alert('Enter both fields'); return; }
+  if(!username || !password) { alert(isHindi ? "दोनों फ़ील्ड भरें" : "Enter both fields"); return; }
   const users = JSON.parse(localStorage.getItem('eduassist_users')||'{}');
-  if(users[username]) { document.getElementById('loginMessage').innerText='Username exists'; return; }
+  if(users[username]) { document.getElementById('loginMessage').innerText=isHindi?'यूज़रनेम मौजूद है':'Username exists'; return; }
   users[username] = {password};
   localStorage.setItem('eduassist_users', JSON.stringify(users));
-  document.getElementById('loginMessage').innerText='Registered! Please login.';
+  document.getElementById('loginMessage').innerText=isHindi?'रजिस्टर हो गया! लॉगिन करें':'Registered! Please login.';
 }
 function logout() {
   currentUser='';
@@ -161,7 +200,7 @@ function renderPlanner() {
     tbody.innerHTML+=`<tr>
       <td>${t.subject}</td>
       <td class="${t.completed?'completed':''}">${t.topic}</td>
-      <td><button onclick="toggleComplete(${i})">${t.completed?'Undo':'Done'}</button></td>
+      <td><button onclick="toggleComplete(${i})">${t.completed?(isHindi?'पूर्ववत':'Undo'):(isHindi?'पूरा':'Done')}</button></td>
     </tr>`;
   });
 }
@@ -202,6 +241,7 @@ const notesData = {
     {"topic":"Differential Equations","notes":"dy/dx=f(x,y); Linear & separable eqs"}
   ]
 };
+
 function showNotes() {
   const subject = document.getElementById('notesSubject').value;
   const contentDiv = document.getElementById('notesContent');
@@ -210,26 +250,26 @@ function showNotes() {
     contentDiv.innerHTML+=`<h4>${n.topic}</h4><p>${n.notes}</p>`;
   });
 }
-showNotes();
 
 // ------------------ QUIZZES ------------------
 const quizData = {
   "Physics":[
-    {"question":"F=ma, a=?","options":["F/m","m/F","F+M","F-M"],"answer":"F/m"},
-    {"question":"Kinetic energy formula?","options":["1/2 mv²","mgh","mv","F*d"],"answer":"1/2 mv²"},
-    {"question":"Gravitational force formula?","options":["Gm1m2/r²","mg","m1+m2","mgh"],"answer":"Gm1m2/r²"}
+    {"question":"यदि F = ma है, तो a = ?","options":["F/m","m/F","F+M","F-M"],"answer":"F/m"},
+    {"question":"काइनेमेटिक्स का सूत्र क्या है?","options":["s = ut + 1/2 at²","v = u/t","F=ma","W=Fd"],"answer":"s = ut + 1/2 at²"},
+    {"question":"घर्षण बल का फार्मूला क्या है?","options":["f = μN","F=ma","τ=Iα","P=VI"],"answer":"f = μN"}
   ],
   "Chemistry":[
-    {"question":"Atomic number of Oxygen?","options":["8","16","6","12"],"answer":"8"},
-    {"question":"Molarity formula?","options":["Moles/Litre","Mass/Moles","nRT/P","P*V=nRT"],"answer":"Moles/Litre"},
-    {"question":"ΔG<0 indicates?","options":["Spontaneous","Non-spontaneous","Equilibrium","Impossible"],"answer":"Spontaneous"}
+    {"question":"ऑक्सीजन का परमाणु क्रमांक क्या है?","options":["8","16","6","12"],"answer":"8"},
+    {"question":"हाइड्रोजन का इलेक्ट्रॉन कॉन्फ़िगरेशन क्या है?","options":["1s¹","1s²","2s¹","2p¹"],"answer":"1s¹"},
+    {"question":"पीरियडिक टेबल में 'Na' किस ग्रुप में है?","options":["1","2","17","18"],"answer":"1"}
   ],
   "Math":[
-    {"question":"Derivative of x²?","options":["2x","x","x²","1"],"answer":"2x"},
-    {"question":"Sum of AP: S_n=?","options":["n/2*(2a+(n-1)d)","a*n","n²","nd"],"answer":"n/2*(2a+(n-1)d)"},
-    {"question":"Quadratic formula?","options":["(-b±√(b²-4ac))/2a","b²-4ac","ax²+bx+c=0","b/2a"],"answer":"(-b±√(b²-4ac))/2a"}
+    {"question":"x² का अवकलन क्या है?","options":["2x","x","x²","1"],"answer":"2x"},
+    {"question":"AP का योग सूत्र क्या है?","options":["n/2*(2a+(n-1)d)","a*n","n²","nd"],"answer":"n/2*(2a+(n-1)d)"},
+    {"question":"द्विघात समीकरण का सूत्र क्या है?","options":["(-b±√(b²-4ac))/2a","b²-4ac","ax²+bx+c=0","b/2a"],"answer":"(-b±√(b²-4ac))/2a"}
   ]
 };
+
 function showQuiz() {
   const subject = document.getElementById('quizSubject').value;
   const div = document.getElementById('quizContent');
@@ -239,13 +279,14 @@ function showQuiz() {
     q.options.forEach(opt=>{
       html+=`<label class="quiz-option"><input type="radio" name="q${i}" value="${opt}"> ${opt}</label><br>`;
     });
-    html+=`<button onclick="checkAnswer(${i}, '${q.answer}')">Check Answer</button> <span id="ans${i}"></span>`;
+    html+=`<button onclick="checkAnswer(${i}, '${q.answer}')">${isHindi?'उत्तर जांचें':'Check Answer'}</button> <span id="ans${i}"></span>`;
     div.innerHTML+=html;
   });
 }
+
 function checkAnswer(i, correct) {
   const selected = document.querySelector(`input[name=q${i}]:checked`);
-  if(!selected) { alert('Select an option!'); return; }
+  if(!selected) { alert(isHindi ? "एक विकल्प चुनें!" : "Select an option!"); return; }
   document.getElementById('ans'+i).innerHTML = selected.value===correct ? '<span class="correct">✅ Correct!</span>' : `<span class="wrong">❌ Wrong! Correct: ${correct}</span>`;
 }
 
