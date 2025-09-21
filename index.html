@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduAssist - JEE Prep</title>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f0f4f8; }
+header { background:beige; color:darkcyan; padding:15px; text-align:center; }
+nav { display:flex; justify-content:center; background: darkgray; }
+nav button { background:white; color:darkcyan; padding:12px 18px; border:none; cursor:pointer; margin:0 2px; border-radius:4px; }
+nav button:hover { background: bisque; }
+section { display:none; padding:20px; max-width:900px; margin:auto; background:white; margin-top:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+h2 { color:#333; }
+input, select, button { padding:8px; margin:5px 0; }
+.completed { text-decoration: line-through; color: gray; }
+table { width:100%; border-collapse: collapse; margin-top:10px; }
+th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+th { background:cornflowerblue; color:white; }
+.quiz-option { margin-left:10px; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+.modal-content { background:white; padding:20px; border-radius:8px; width:300px; text-align:center; }
+span.correct { color:green; font-weight:bold; }
+span.wrong { color:red; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>EduAssist - JEE Prep</h1>
+</header>
+
+<nav>
+  <button onclick="showSection('planner')">Planner</button>
+  <button onclick="showSection('notes')">Notes</button>
+  <button onclick="showSection('quizzes')">Quizzes</button>
+  <button onclick="logout()" style="margin-left:20px;background: whitesmoke;">Logout</button>
+</nav>
+
+<!-- Planner Section -->
+<section id="planner">
+  <h2>Study Planner</h2>
+  <label>Subject:</label>
+  <select id="plannerSubject">
+    <option>Physics</option>
+    <option>Chemistry</option>
+    <option>Math</option>
+  </select><br>
+  <label>Topic:</label>
+  <input type="text" id="plannerTopic" placeholder="Enter topic">
+  <button onclick="addPlannerTopic()">Add Topic</button>
+  <table>
+    <thead><tr><th>Subject</th><th>Topic</th><th>Action</th></tr></thead>
+    <tbody id="plannerTable"></tbody>
+  </table>
+</section>
+
+<!-- Notes Section -->
+<section id="notes">
+  <h2>Topic Notes</h2>
+  <label>Subject:</label>
+  <select id="notesSubject" onchange="showNotes()">
+    <option>Physics</option>
+    <option>Chemistry</option>
+    <option>Math</option>
+  </select>
+  <div id="notesContent"></div>
+</section>
+
+<!-- Quizzes Section -->
+<section id="quizzes">
+  <h2>Quizzes</h2>
+  <label>Subject:</label>
+  <select id="quizSubject" onchange="showQuiz()">
+    <option>Physics</option>
+    <option>Chemistry</option>
+    <option>Math</option>
+  </select>
+  <div id="quizContent"></div>
+</section>
+
+<!-- Login/Register Modal -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h3>Login / Register</h3>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <button onclick="register()">Register</button>
+    <p id="loginMessage" style="color:red;"></p>
+  </div>
+</div>
+
+<script>
+// ------------------ LOGIN SYSTEM ------------------
+let currentUser = '';
+function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  if(!username || !password) { alert('Enter both fields'); return; }
+  const users = JSON.parse(localStorage.getItem('eduassist_users')||'{}');
+  if(users[username] && users[username].password===password) {
+    currentUser = username;
+    if(!localStorage.getItem('eduassist_'+currentUser)) localStorage.setItem('eduassist_'+currentUser, JSON.stringify([]));
+    document.getElementById('loginModal').style.display='none';
+    loadPlanner();
+    showSection('planner');
+  } else {
+    document.getElementById('loginMessage').innerText = 'Invalid credentials';
+  }
+}
+function register() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  if(!username || !password) { alert('Enter both fields'); return; }
+  const users = JSON.parse(localStorage.getItem('eduassist_users')||'{}');
+  if(users[username]) { document.getElementById('loginMessage').innerText='Username exists'; return; }
+  users[username] = {password};
+  localStorage.setItem('eduassist_users', JSON.stringify(users));
+  document.getElementById('loginMessage').innerText='Registered! Please login.';
+}
+function logout() {
+  currentUser='';
+  document.getElementById('loginModal').style.display='flex';
+  plannerTopics=[];
+}
+
+// ------------------ NAVIGATION ------------------
+function showSection(id) {
+  document.querySelectorAll('section').forEach(s => s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+// ------------------ PLANNER ------------------
+let plannerTopics = [];
+function loadPlanner() {
+  plannerTopics = JSON.parse(localStorage.getItem('eduassist_'+currentUser)||'[]');
+  renderPlanner();
+}
+function addPlannerTopic() {
+  const subject = document.getElementById('plannerSubject').value;
+  const topic = document.getElementById('plannerTopic').value.trim();
+  if(topic=='') return;
+  plannerTopics.push({subject, topic, completed:false});
+  document.getElementById('plannerTopic').value='';
+  savePlanner();
+  renderPlanner();
+}
+function toggleComplete(index) {
+  plannerTopics[index].completed = !plannerTopics[index].completed;
+  savePlanner();
+  renderPlanner();
+}
+function savePlanner() {
+  localStorage.setItem('eduassist_'+currentUser, JSON.stringify(plannerTopics));
+}
+function renderPlanner() {
+  const tbody = document.getElementById('plannerTable');
+  tbody.innerHTML='';
+  plannerTopics.forEach((t,i)=>{
+    tbody.innerHTML+=`<tr>
+      <td>${t.subject}</td>
+      <td class="${t.completed?'completed':''}">${t.topic}</td>
+      <td><button onclick="toggleComplete(${i})">${t.completed?'Undo':'Done'}</button></td>
+    </tr>`;
+  });
+}
+
+// ------------------ NOTES ------------------
+const notesData = {
+  "Physics":[
+    {"topic":"Kinematics","notes":"v = u + at; s = ut + 1/2 at²"},
+    {"topic":"Laws of Motion","notes":"F = ma; Action-Reaction pairs"},
+    {"topic":"Work & Energy","notes":"KE=1/2 mv²; PE=mgh; W=Fdcosθ"},
+    {"topic":"Rotational Motion","notes":"τ=Iα; L=Iω; KE_rot=1/2 Iω²"},
+    {"topic":"Gravitation","notes":"F=Gm1m2/r²; g=GM/R²; Potential=-GMm/r"},
+    {"topic":"Oscillations","notes":"x=A sin(ωt); T=2π√(m/k)"},
+    {"topic":"Waves","notes":"v=fλ; y=Asin(kx-ωt)"},
+    {"topic":"Electrostatics","notes":"F=kq1q2/r²; V=kq/r; E=F/q"},
+    {"topic":"Current Electricity","notes":"V=IR; P=VI; R=ρL/A"}
+  ],
+  "Chemistry":[
+    {"topic":"Atomic Structure","notes":"Electron config, Bohr model, Quantum numbers"},
+    {"topic":"Periodic Table","notes":"Groups, periods, electronegativity trends"},
+    {"topic":"Chemical Bonding","notes":"Ionic, Covalent, Metallic, VSEPR"},
+    {"topic":"Stoichiometry","notes":"Moles=n=mass/M; %Yield; Limiting reagent"},
+    {"topic":"Thermodynamics","notes":"ΔU=Q-W; H=U+PV; ΔG=ΔH-TΔS"},
+    {"topic":"Equilibrium","notes":"Kc,Kp; Le Chatelier's principle"},
+    {"topic":"Redox & Electrochemistry","notes":"Oxidation numbers; Nernst eq; Galvanic cells"},
+    {"topic":"Solutions","notes":"Molarity, Molality, Raoult's Law, Colligative properties"},
+    {"topic":"Organic Chemistry","notes":"Functional groups; Nomenclature; Reactions"}
+  ],
+  "Math":[
+    {"topic":"Algebra","notes":"Quadratic eqs; AP/GP; Inequalities"},
+    {"topic":"Calculus","notes":"Limits, Derivatives, Integrals, Max/Min"},
+    {"topic":"Coordinate Geometry","notes":"Straight line, Circle, Parabola, Ellipse, Hyperbola"},
+    {"topic":"Trigonometry","notes":"Sin, Cos, Tan formulas; Identities"},
+    {"topic":"Vectors & 3D Geometry","notes":"Dot, Cross product; Lines & Planes"},
+    {"topic":"Probability & Statistics","notes":"Permutations, Combinations, Probability rules"},
+    {"topic":"Complex Numbers","notes":"z=a+ib; Modulus, Argument, De Moivre's theorem"},
+    {"topic":"Matrices & Determinants","notes":"Addition, Multiplication, Determinant properties"},
+    {"topic":"Differential Equations","notes":"dy/dx=f(x,y); Linear & separable eqs"}
+  ]
+};
+function showNotes() {
+  const subject = document.getElementById('notesSubject').value;
+  const contentDiv = document.getElementById('notesContent');
+  contentDiv.innerHTML='';
+  notesData[subject].forEach(n=>{
+    contentDiv.innerHTML+=`<h4>${n.topic}</h4><p>${n.notes}</p>`;
+  });
+}
+showNotes();
+
+// ------------------ QUIZZES ------------------
+const quizData = {
+  "Physics":[
+    {"question":"F=ma, a=?","options":["F/m","m/F","F+M","F-M"],"answer":"F/m"},
+    {"question":"Kinetic energy formula?","options":["1/2 mv²","mgh","mv","F*d"],"answer":"1/2 mv²"},
+    {"question":"Gravitational force formula?","options":["Gm1m2/r²","mg","m1+m2","mgh"],"answer":"Gm1m2/r²"}
+  ],
+  "Chemistry":[
+    {"question":"Atomic number of Oxygen?","options":["8","16","6","12"],"answer":"8"},
+    {"question":"Molarity formula?","options":["Moles/Litre","Mass/Moles","nRT/P","P*V=nRT"],"answer":"Moles/Litre"},
+    {"question":"ΔG<0 indicates?","options":["Spontaneous","Non-spontaneous","Equilibrium","Impossible"],"answer":"Spontaneous"}
+  ],
+  "Math":[
+    {"question":"Derivative of x²?","options":["2x","x","x²","1"],"answer":"2x"},
+    {"question":"Sum of AP: S_n=?","options":["n/2*(2a+(n-1)d)","a*n","n²","nd"],"answer":"n/2*(2a+(n-1)d)"},
+    {"question":"Quadratic formula?","options":["(-b±√(b²-4ac))/2a","b²-4ac","ax²+bx+c=0","b/2a"],"answer":"(-b±√(b²-4ac))/2a"}
+  ]
+};
+function showQuiz() {
+  const subject = document.getElementById('quizSubject').value;
+  const div = document.getElementById('quizContent');
+  div.innerHTML='';
+  quizData[subject].forEach((q,i)=>{
+    let html = `<p><b>${i+1}. ${q.question}</b></p>`;
+    q.options.forEach(opt=>{
+      html+=`<label class="quiz-option"><input type="radio" name="q${i}" value="${opt}"> ${opt}</label><br>`;
+    });
+    html+=`<button onclick="checkAnswer(${i}, '${q.answer}')">Check Answer</button> <span id="ans${i}"></span>`;
+    div.innerHTML+=html;
+  });
+}
+function checkAnswer(i, correct) {
+  const selected = document.querySelector(`input[name=q${i}]:checked`);
+  if(!selected) { alert('Select an option!'); return; }
+  document.getElementById('ans'+i).innerHTML = selected.value===correct ? '<span class="correct">✅ Correct!</span>' : `<span class="wrong">❌ Wrong! Correct: ${correct}</span>`;
+}
+
+// Show login modal on load
+document.getElementById('loginModal').style.display='flex';
+</script>
+
+</body>
+</html>
